@@ -127,4 +127,43 @@ class RecommendationEngine:
         # Create user-book matrix (simplified)
         user_books = {}
         for b in all_borrowings:
-            user_books.setdefault(str(b.user_id),
+            user_books.setdefault(str(b.user_id), set()).add(str(b.book_id))
+
+        target_books = user_books.get(str(user_id), set())
+        if not target_books:
+            return []
+
+        # Compute simple overlap-based similarity
+        similarities = []
+        for other_id, books in user_books.items():
+            if other_id == str(user_id):
+                continue
+            overlap = len(target_books.intersection(books))
+            if overlap > 0:
+                similarities.append((other_id, overlap))
+
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        if not similarities:
+            return []
+
+        # Recommend books from similar users
+        recommended_ids = []
+        for other_id, _ in similarities:
+            for book_id in user_books.get(other_id, set()):
+                if book_id not in target_books and book_id not in recommended_ids:
+                    recommended_ids.append(book_id)
+                if len(recommended_ids) >= n_recommendations:
+                    break
+            if len(recommended_ids) >= n_recommendations:
+                break
+
+        recommendations = [
+            {
+                "book_id": UUID(book_id),
+                "score": 0.6,
+                "reason": "Readers with similar taste"
+            }
+            for book_id in recommended_ids[:n_recommendations]
+        ]
+
+        return recommendations
