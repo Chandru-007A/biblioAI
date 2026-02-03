@@ -3,6 +3,7 @@ import { useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
